@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:gmlkit_liveness/data/models/camera_image.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 
-class ImageData {
+class CameraImageMetaData {
   final CameraLensDirection lensDirection;
   final DeviceOrientation deviceOrientation;
   final int sensorOrientation;
@@ -16,14 +16,14 @@ class ImageData {
     DeviceOrientation.landscapeRight: 270,
   };
 
-  ImageData({
+  CameraImageMetaData({
     required this.lensDirection,
     required this.deviceOrientation,
     required this.sensorOrientation,
     required this.cameraImage,
   });
 
-  InputImage? inputImageFromCameraImage(ImageData imageData) {
+  InputImage? inputImageFromCameraImageMetaData(CameraImageMetaData imageData) {
     InputImageRotation? rotation = _getPlatformRotation();
     if (rotation == null) return null;
 

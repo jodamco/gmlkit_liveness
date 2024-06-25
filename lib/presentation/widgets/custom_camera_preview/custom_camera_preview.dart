@@ -6,7 +6,7 @@ import 'package:gmlkit_liveness/presentation/widgets/custom_camera_preview/previ
 import 'package:permission_handler/permission_handler.dart';
 
 class CustomCameraPreview extends StatefulWidget {
-  final Function(ImageData inputImage)? onImage;
+  final Function(CameraImageMetaData inputImage)? onImage;
   final CustomPaint? customPaint;
   final VoidCallback? onCameraFeedReady;
 
@@ -112,7 +112,7 @@ class _CustomCameraPreviewState extends State<CustomCameraPreview> {
 
     if (widget.onImage != null) {
       widget.onImage!(
-        ImageData(
+        CameraImageMetaData(
           lensDirection: CameraLensDirection.front,
           deviceOrientation: _controller!.value.deviceOrientation,
           sensorOrientation: selectedCamera!.sensorOrientation,
