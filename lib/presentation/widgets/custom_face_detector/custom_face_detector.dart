@@ -1,10 +1,10 @@
-import 'dart:isolate';
+import 'dart:async';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:gmlkit_liveness/data/models/image_data.dart';
 import 'package:gmlkit_liveness/presentation/widgets/custom_camera_preview/custom_camera_preview.dart';
+import 'package:gmlkit_liveness/presentation/widgets/custom_face_detector/worker.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 
 class CustomFaceDetector extends StatefulWidget {
@@ -22,22 +22,29 @@ class CustomFaceDetector extends StatefulWidget {
 class _CustomFaceDetectorState extends State<CustomFaceDetector> {
   final cameraLensDirection = CameraLensDirection.front;
   bool _isBusy = false;
+  DetectorWorker? worker;
 
   @override
   void initState() {
     super.initState();
+    _initWorker();
+  }
+
+  _initWorker() async {
+    worker = await DetectorWorker.spawn();
   }
 
   @override
   void dispose() {
     super.dispose();
+    if (worker != null) worker?.close();
   }
 
   Future<void> _runAnalysisPipeline(CameraImageMetaData metaData) async {
-    if (_isBusy) return;
+    if (_isBusy || worker == null) return;
     _isBusy = true;
 
-    final (analysisData) = await _processImage(metaData);
+    final (analysisData) = await worker?.processImage(metaData);
     if (analysisData != null && widget.onAnalysisData != null) {
       widget.onAnalysisData!(analysisData);
     }
@@ -59,51 +66,6 @@ class _CustomFaceDetectorState extends State<CustomFaceDetector> {
 
   //   _customPaint = CustomPaint(painter: painter);
   // }
-
-  Future<(InputImage, List<Face>)?> _processImage(
-    CameraImageMetaData metaData,
-  ) async {
-    final inputImage = await parseMetaData(metaData);
-
-    if (inputImage == null ||
-        inputImage.metadata?.size == null ||
-        inputImage.metadata?.rotation == null) return null;
-
-    final faceList = await runFaceDetection(inputImage);
-    if (faceList.isEmpty) return null;
-
-    return (inputImage, faceList);
-  }
-
-  Future<InputImage?> parseMetaData(CameraImageMetaData metaData) async {
-    RootIsolateToken rootIsolateToken = RootIsolateToken.instance!;
-    return await Isolate.run<InputImage?>(() async {
-      BackgroundIsolateBinaryMessenger.ensureInitialized(rootIsolateToken);
-
-      final inputImage = metaData.inputImageFromCameraImageMetaData(metaData);
-      return inputImage;
-    });
-  }
-
-  Future<List<Face>> runFaceDetection(InputImage inputImage) async {
-    RootIsolateToken rootIsolateToken = RootIsolateToken.instance!;
-    return await Isolate.run<List<Face>>(() async {
-      BackgroundIsolateBinaryMessenger.ensureInitialized(rootIsolateToken);
-
-      final FaceDetector faceDetector = FaceDetector(
-        options: FaceDetectorOptions(
-          enableContours: true,
-          enableLandmarks: true,
-          enableTracking: true,
-          enableClassification: true
-        ),
-      );
-
-      final faces = await faceDetector.processImage(inputImage);
-      await faceDetector.close();
-      return faces;
-    });
-  }
 
   @override
   Widget build(BuildContext context) {

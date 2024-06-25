@@ -22,7 +22,6 @@ class CustomCameraPreview extends StatefulWidget {
 }
 
 class _CustomCameraPreviewState extends State<CustomCameraPreview> {
-  List<CameraDescription>? _cameras = [];
   CameraDescription? selectedCamera;
   CameraController? _controller;
   bool hasPermissions = false;
@@ -75,7 +74,6 @@ class _CustomCameraPreviewState extends State<CustomCameraPreview> {
   Future<void> _getAvailableCameras() async {
     final cameras = await availableCameras();
     setState(() {
-      _cameras = cameras;
       selectedCamera = cameras.firstWhere(
         (c) => c.lensDirection == CameraLensDirection.front,
       );

@@ -23,24 +23,23 @@ class CameraImageMetaData {
     required this.cameraImage,
   });
 
-  InputImage? inputImageFromCameraImageMetaData(CameraImageMetaData imageData) {
+  InputImage? inputImageFromCameraImageMetaData() {
     InputImageRotation? rotation = _getPlatformRotation();
     if (rotation == null) return null;
 
     final format = InputImageFormatValue.fromRawValue(
-      imageData.cameraImage.format.raw,
+      cameraImage.format.raw,
     );
     if (format == null ||
         (Platform.isAndroid && format != InputImageFormat.yuv_420_888) ||
         (Platform.isIOS && format != InputImageFormat.bgra8888)) return null;
 
-    final plane = imageData.cameraImage.planes.first;
+    final plane = cameraImage.planes.first;
 
     return InputImage.fromBytes(
-      bytes: imageData.cameraImage.getNv21Uint8List(),
+      bytes: cameraImage.getNv21Uint8List(),
       metadata: InputImageMetadata(
-        size: Size(imageData.cameraImage.width.toDouble(),
-            imageData.cameraImage.height.toDouble()),
+        size: Size(cameraImage.width.toDouble(), cameraImage.height.toDouble()),
         rotation: rotation, // used only in Android
         format: format, // used only in iOS
         bytesPerRow: plane.bytesPerRow, // used only in iOS
